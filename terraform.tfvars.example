@@ -3,8 +3,14 @@
 # To get your public key from 1Password:
 #   op item get <ssh-key-name> --format=json | jq -r '.details.publicKey'
 #
+# To get Tailscale auth key:
+#   https://login.tailscale.com/admin/settings/keys (generate reusable key)
+#
+# To get Cloudflare Tunnel token:
+#   https://dash.cloudflare.com/ → Zero Trust → Networks → Tunnels
+#
 # Example:
-# ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EA..."
-# vm_count = 3
-# location = "East US"
-
+# ssh_public_key            = "ssh-rsa AAAAB3NzaC1yc2EA..."
+# tailscale_auth_key        = "tskey-xxxxxxxxxxxxxxxxxxxxxxxx"
+# cloudflare_tunnel_token   = "xxxxxxxx-xxxxx-xxxxx"
+# location                  = "East US"

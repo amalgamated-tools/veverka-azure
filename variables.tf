@@ -21,3 +21,17 @@ variable "ssh_public_key" {
   type        = string
   sensitive   = true
 }
+
+variable "tailscale_auth_key" {
+  description = "Tailscale auth key for automatic node registration"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "cloudflare_tunnel_token" {
+  description = "Cloudflare Tunnel token for cloudflared"
+  type        = string
+  sensitive   = true
+  default     = ""
+}

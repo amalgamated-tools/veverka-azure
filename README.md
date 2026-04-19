@@ -22,6 +22,57 @@ terraform output vm_private_ips
 terraform destroy
 ```
 
+## Tailscale & Cloudflare Tunnel Setup
+
+### Getting Tailscale Auth Key
+
+1. Go to https://login.tailscale.com/admin/settings/keys
+2. Generate a new **Reusable** auth key (with expiry if desired)
+3. Copy the key and use it when deploying
+
+### Getting Cloudflare Tunnel Token
+
+1. Go to https://dash.cloudflare.com/
+2. Navigate to **Zero Trust** → **Networks** → **Tunnels**
+3. Create a new tunnel or use existing one
+4. Copy the **installation token**
+
+### Deploying with Tailscale & Cloudflare
+
+```bash
+terraform apply \
+  -var="tailscale_auth_key=tskey-xxxxxxxxxxxxxxxx" \
+  -var="cloudflare_tunnel_token=xxxxxxxx"
+```
+
+Or add to `terraform.tfvars`:
+
+```hcl
+tailscale_auth_key       = "tskey-xxxxxxxxxxxxxxxx"
+cloudflare_tunnel_token  = "xxxxxxxx"
+```
+
+### Manual Cloudflare Setup (if needed)
+
+After VMs are created, SSH into each and run:
+
+```bash
+sudo cloudflared service install <TOKEN>
+sudo systemctl start cloudflared
+sudo systemctl status cloudflared
+```
+
+### Verify Setup
+
+```bash
+# Check Tailscale
+sudo tailscale status
+
+# Check Cloudflared
+sudo systemctl status cloudflared
+sudo journalctl -u cloudflared -n 50
+```
+
 ## Infrastructure
 
 - **3x B2s v2 VMs** (2 vCPU, 8GB RAM each)

@@ -170,6 +170,13 @@ resource "azurerm_linux_virtual_machine" "veverka" {
     azurerm_network_interface.veverka[each.value].id,
   ]
 
+  # User data script to install Tailscale and Cloudflare Tunnel
+  user_data = base64encode(templatefile("${path.module}/user_data.sh", {
+    vm_name                    = each.value
+    tailscale_auth_key         = var.tailscale_auth_key
+    cloudflare_tunnel_token    = var.cloudflare_tunnel_token
+  }))
+
   # Tags for organization
   tags = {
     Name        = each.value
