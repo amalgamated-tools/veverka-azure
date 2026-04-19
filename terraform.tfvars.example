@@ -3,8 +3,8 @@
 # SSH Key: MUST be RSA (ssh-rsa), NOT ed25519
 # To generate:
 #   ssh-keygen -t rsa -b 4096 -f ~/.ssh/azure_rsa -C "azure@veverka"
-# To get from 1Password:
-#   op item get "<ssh-key-name>" --format=json | jq -r '.details.publicKey'
+# To get from 1Password (new format):
+#   op item get "<ssh-key-name>" --format=json | jq -r '.fields[] | select(.id=="public_key") | .value'
 #
 # Tailscale auth key:
 #   https://login.tailscale.com/admin/settings/keys (generate reusable key)

@@ -131,8 +131,8 @@ cat ~/.ssh/azure_rsa.pub
 ### Get Public Key from 1Password
 
 ```bash
-# If using op CLI
-op item get "<ssh-key-name>" --format=json | jq -r '.details.publicKey'
+# Using op CLI (new format with .fields)
+op item get "<ssh-key-name>" --format=json | jq -r '.fields[] | select(.id=="public_key") | .value'
 
 # Or manually copy from 1Password UI
 ```
