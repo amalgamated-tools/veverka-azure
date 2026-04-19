@@ -148,7 +148,7 @@ resource "azurerm_linux_virtual_machine" "veverka" {
   # SSH key authentication
   admin_ssh_key {
     username   = "azureuser"
-    public_key = file(var.ssh_public_key_path)
+    public_key = var.ssh_public_key
   }
 
   # OS disk

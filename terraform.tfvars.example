@@ -1,5 +1,10 @@
 # Override variables here (local only, not committed to git)
+# 
+# To get your public key from 1Password:
+#   op item get <ssh-key-name> --format=json | jq -r '.details.publicKey'
+#
 # Example:
+# ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EA..."
 # vm_count = 3
 # location = "East US"
-# ssh_public_key_path = "~/.ssh/veverka_id_rsa.pub"
+

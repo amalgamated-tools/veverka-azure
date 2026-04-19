@@ -51,12 +51,23 @@ terraform destroy
 2. Terraform installed: `brew install terraform`
 3. SSH key for VM access
 
-## SSH Access
-
-After deployment, connect to VMs:
+## **To Get Your SSH Public Key from 1Password:**
 
 ```bash
-ssh -i ~/.ssh/veverka_id_rsa azureuser@<public_ip>
+# If you have the 1Password CLI installed:
+op item get "<ssh-key-name>" --format=json | jq -r '.details.publicKey'
+
+# Or manually:
+# 1. Open 1Password
+# 2. Find your SSH key
+# 3. Copy the public key content
 ```
 
-(Public IPs shown in `terraform output vm_public_ips`)
+Then create `terraform.tfvars`:
+
+```hcl
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EA..."
+```
+
+The private key stays in 1Password — Terraform only needs the public key for the VMs.
+

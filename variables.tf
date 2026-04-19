@@ -16,8 +16,8 @@ variable "location" {
   default     = "East US"
 }
 
-variable "ssh_public_key_path" {
-  description = "Path to SSH public key for VM access"
+variable "ssh_public_key" {
+  description = "SSH public key content (from 1Password)"
   type        = string
-  default     = "~/.ssh/id_rsa.pub"
+  sensitive   = true
 }
