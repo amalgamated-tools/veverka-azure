@@ -95,8 +95,8 @@ resource "azurerm_network_security_group" "veverka" {
 
 # Public IP addresses (one per VM for SSH access)
 resource "azurerm_public_ip" "veverka" {
-  count               = var.vm_count
-  name                = "veverka-pip-${count.index + 1}"
+  for_each            = toset(var.vm_names)
+  name                = "${lower(each.value)}-pip"
   location            = azurerm_resource_group.veverka.location
   resource_group_name = azurerm_resource_group.veverka.name
   allocation_method   = "Static"
@@ -105,16 +105,16 @@ resource "azurerm_public_ip" "veverka" {
 
 # Network interfaces
 resource "azurerm_network_interface" "veverka" {
-  count               = var.vm_count
-  name                = "veverka-nic-${count.index + 1}"
+  for_each            = toset(var.vm_names)
+  name                = "${lower(each.value)}-nic"
   location            = azurerm_resource_group.veverka.location
   resource_group_name = azurerm_resource_group.veverka.name
 
   ip_configuration {
-    name                          = "veverka-ipconfig-${count.index + 1}"
+    name                          = "${lower(each.value)}-ipconfig"
     subnet_id                     = azurerm_subnet.veverka.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.veverka[count.index].id
+    public_ip_address_id          = azurerm_public_ip.veverka[each.value].id
   }
 }
 
@@ -126,8 +126,8 @@ resource "azurerm_subnet_network_security_group_association" "veverka" {
 
 # Managed disks (OS disks)
 resource "azurerm_managed_disk" "veverka" {
-  count               = var.vm_count
-  name                = "veverka-osdisk-${count.index + 1}"
+  for_each            = toset(var.vm_names)
+  name                = "${lower(each.value)}-osdisk"
   location            = azurerm_resource_group.veverka.location
   resource_group_name = azurerm_resource_group.veverka.name
   storage_account_type = "Premium_LRS"
@@ -137,8 +137,8 @@ resource "azurerm_managed_disk" "veverka" {
 
 # Virtual machines
 resource "azurerm_linux_virtual_machine" "veverka" {
-  count               = var.vm_count
-  name                = "veverka-vm-${count.index + 1}"
+  for_each            = toset(var.vm_names)
+  name                = each.value
   location            = azurerm_resource_group.veverka.location
   resource_group_name = azurerm_resource_group.veverka.name
   size                = var.vm_size
@@ -167,12 +167,12 @@ resource "azurerm_linux_virtual_machine" "veverka" {
 
   # Network interface
   network_interface_ids = [
-    azurerm_network_interface.veverka[count.index].id,
+    azurerm_network_interface.veverka[each.value].id,
   ]
 
   # Tags for organization
   tags = {
-    Name        = "veverka-vm-${count.index + 1}"
+    Name        = each.value
     Environment = "production"
     Project     = "veverka"
   }
@@ -182,7 +182,7 @@ resource "azurerm_linux_virtual_machine" "veverka" {
 output "vm_public_ips" {
   description = "Public IP addresses for SSH access"
   value = {
-    for i, ip in azurerm_public_ip.veverka : "veverka-vm-${i + 1}" => ip.ip_address
+    for name in var.vm_names : name => azurerm_public_ip.veverka[name].ip_address
   }
 }
 
@@ -190,7 +190,7 @@ output "vm_public_ips" {
 output "vm_private_ips" {
   description = "Private IP addresses for internal networking"
   value = {
-    for i, nic in azurerm_network_interface.veverka : "veverka-vm-${i + 1}" => nic.private_ip_address
+    for name in var.vm_names : name => azurerm_network_interface.veverka[name].private_ip_address
   }
 }
 

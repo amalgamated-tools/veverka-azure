@@ -1,7 +1,7 @@
-variable "vm_count" {
-  description = "Number of VMs to create"
-  type        = number
-  default     = 3
+variable "vm_names" {
+  description = "Names for the VMs"
+  type        = list(string)
+  default     = ["VAZURE1", "VAZURE2", "VAZURE3"]
 }
 
 variable "vm_size" {

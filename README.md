@@ -8,11 +8,15 @@ Terraform configuration for 3 x B2s v2 Azure VMs running nanobot, Honcho, and se
 # Initialize Terraform
 terraform init
 
-# See what will be created
+# See what will be created (3 VMs: VAZURE1, VAZURE2, VAZURE3)
 terraform plan
 
 # Deploy the infrastructure
 terraform apply
+
+# Get outputs
+terraform output vm_public_ips
+terraform output vm_private_ips
 
 # Destroy everything (careful!)
 terraform destroy
@@ -26,11 +30,11 @@ terraform destroy
 - **Storage**: Premium SSD managed disks
 - **Free tier**: 750 hours/month per VM (12 months)
 
-## VM Purpose
+## VM Names
 
-1. **veverka-vm-1**: nanobot gateway + copilot-api
-2. **veverka-vm-2**: Honcho + PostgreSQL + Redis
-3. **veverka-vm-3**: Secondary services (n8n, Qdrant, etc.)
+- **VAZURE1** — nanobot gateway + copilot-api
+- **VAZURE2** — Honcho + PostgreSQL + Redis
+- **VAZURE3** — Secondary services (n8n, Qdrant, etc.)
 
 ## Estimated Costs
 
