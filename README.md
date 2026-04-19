@@ -106,23 +106,36 @@ sudo journalctl -u cloudflared -n 50
 2. Terraform installed: `brew install terraform`
 3. SSH key for VM access
 
-## **To Get Your SSH Public Key from 1Password:**
+## SSH Key Requirements
+
+**⚠️ IMPORTANT: Azure only supports RSA keys, NOT ed25519**
+
+### Generate an RSA SSH Key (if needed)
 
 ```bash
-# If you have the 1Password CLI installed:
+# Generate 4096-bit RSA key
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/azure_rsa -C "azure@veverka"
+
+# View the public key
+cat ~/.ssh/azure_rsa.pub
+```
+
+### Add to 1Password
+
+1. Generate the key above
+2. Open 1Password
+3. Create new SSH Key item
+4. Paste the **private key** content (from `~/.ssh/azure_rsa`)
+5. Save and copy the **public key** for terraform
+
+### Get Public Key from 1Password
+
+```bash
+# If using op CLI
 op item get "<ssh-key-name>" --format=json | jq -r '.details.publicKey'
 
-# Or manually:
-# 1. Open 1Password
-# 2. Find your SSH key
-# 3. Copy the public key content
+# Or manually copy from 1Password UI
 ```
 
-Then create `terraform.tfvars`:
-
-```hcl
-ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EA..."
-```
-
-The private key stays in 1Password — Terraform only needs the public key for the VMs.
+**The key MUST start with `ssh-rsa` — NOT `ssh-ed25519`**
 

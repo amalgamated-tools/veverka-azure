@@ -17,9 +17,14 @@ variable "location" {
 }
 
 variable "ssh_public_key" {
-  description = "SSH public key content (from 1Password)"
+  description = "SSH public key content (from 1Password). MUST be RSA key (Azure does not support ed25519)"
   type        = string
   sensitive   = true
+  
+  validation {
+    condition     = startswith(var.ssh_public_key, "ssh-rsa ")
+    error_message = "SSH key must be RSA format (starts with 'ssh-rsa'). Azure does not support ed25519 keys."
+  }
 }
 
 variable "tailscale_auth_key" {
