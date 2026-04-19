@@ -29,7 +29,8 @@ if [ -n "$TAILSCALE_AUTH_KEY" ]; then
   tailscale up \
     --authkey="$TAILSCALE_AUTH_KEY" \
     --hostname="$VM_NAME" \
-    --accept-dns=false
+    --accept-dns=false \
+    --advertise-exit-node
 else
   echo "WARNING: No Tailscale auth key provided. Run 'tailscale up' manually."
 fi
