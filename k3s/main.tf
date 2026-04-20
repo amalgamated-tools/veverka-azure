@@ -109,18 +109,10 @@ resource "kubernetes_config_map" "postgresql_init" {
   }
 }
 
-# Add CloudNativePG Helm repository
-resource "helm_repository" "cnpg" {
-  name             = "cnpg"
-  repository_url   = "https://cloudnative-pg.io/charts"
-  namespace        = kubernetes_namespace.honcho.metadata[0].name
-  create_namespace = false
-}
-
 # Deploy CloudNativePG operator
 resource "helm_release" "cnpg_operator" {
   name             = "cnpg"
-  repository       = helm_repository.cnpg.name
+  repository       = "https://cloudnative-pg.io/charts"
   chart            = "cloudnative-pg"
   version          = "0.21.0"
   namespace        = kubernetes_namespace.honcho.metadata[0].name
@@ -194,18 +186,10 @@ resource "kubernetes_secret" "postgresql_credentials" {
   depends_on = [kubernetes_namespace.honcho]
 }
 
-# Add Valkey Helm repository
-resource "helm_repository" "valkey" {
-  name             = "valkey"
-  repository_url   = "https://valkey-io.github.io/valkey-helm-charts"
-  namespace        = kubernetes_namespace.honcho.metadata[0].name
-  create_namespace = false
-}
-
 # Deploy Valkey (Redis-compatible)
 resource "helm_release" "valkey" {
   name             = "honcho-valkey"
-  repository       = helm_repository.valkey.name
+  repository       = "https://valkey-io.github.io/valkey-helm-charts"
   chart            = "valkey"
   version          = "0.3.0"
   namespace        = kubernetes_namespace.honcho.metadata[0].name
