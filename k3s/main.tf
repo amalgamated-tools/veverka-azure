@@ -136,48 +136,8 @@ resource "time_sleep" "cnpg_crd_ready" {
   depends_on      = [helm_release.cnpg_operator]
 }
 
-# Create PostgreSQL Cluster using CloudNativePG
-resource "kubernetes_manifest" "postgresql_cluster" {
-  manifest = {
-    apiVersion = "postgresql.cnpg.io/v1"
-    kind       = "Cluster"
-    metadata = {
-      name      = "honcho-postgres"
-      namespace = kubernetes_namespace.honcho.metadata[0].name
-    }
-    spec = {
-      instances = var.postgresql_replica_count
-      primaryUpdateStrategy = "unsupervised"
-      postgresql = {
-        parameters = {
-          shared_buffers        = "256MB"
-          effective_cache_size  = "1GB"
-          maintenance_work_mem  = "64MB"
-          checkpoint_completion_target = "0.9"
-          wal_buffers           = "16MB"
-        }
-      }
-      bootstrap = {
-        initdb = {
-          database = "honcho"
-          owner    = "honcho"
-          secret = {
-            name = kubernetes_secret.postgresql_credentials.metadata[0].name
-          }
-        }
-      }
-      storage = {
-        size             = var.postgresql_storage_size
-        storageClassName = kubernetes_storage_class.fast.metadata[0].name
-      }
-      monitoring = {
-        enabled = false
-      }
-    }
-  }
-
-  depends_on = [time_sleep.cnpg_crd_ready, kubernetes_secret.postgresql_credentials]
-}
+# Note: PostgreSQL Cluster will be created manually via kubectl after CRD is registered
+# See: kubectl apply -f honcho-postgres-cluster.yaml
 
 # Secret for PostgreSQL credentials
 resource "kubernetes_secret" "postgresql_credentials" {
