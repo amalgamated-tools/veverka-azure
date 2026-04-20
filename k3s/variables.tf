@@ -76,8 +76,14 @@ variable "honcho_replica_count" {
   default     = 1
 }
 
+variable "postgresql_replica_count" {
+  description = "Number of PostgreSQL replicas (CloudNativePG cluster instances)"
+  type        = number
+  default     = 1
+}
+
 variable "redis_replica_count" {
-  description = "Number of Redis replicas"
+  description = "Number of Redis/Valkey replicas"
   type        = number
   default     = 1
 }

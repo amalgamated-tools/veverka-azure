@@ -109,6 +109,130 @@ resource "kubernetes_config_map" "postgresql_init" {
   }
 }
 
+# Add CloudNativePG Helm repository
+resource "helm_repository" "cnpg" {
+  name             = "cnpg"
+  repository_url   = "https://cloudnative-pg.io/charts"
+  namespace        = kubernetes_namespace.honcho.metadata[0].name
+  create_namespace = false
+}
+
+# Deploy CloudNativePG operator
+resource "helm_release" "cnpg_operator" {
+  name             = "cnpg"
+  repository       = helm_repository.cnpg.name
+  chart            = "cloudnative-pg"
+  version          = "0.21.0"
+  namespace        = kubernetes_namespace.honcho.metadata[0].name
+  create_namespace = false
+
+  set {
+    name  = "monitoring.enabled"
+    value = "false"
+  }
+
+  depends_on = [kubernetes_namespace.honcho]
+}
+
+# Create PostgreSQL Cluster using CloudNativePG
+resource "kubernetes_manifest" "postgresql_cluster" {
+  manifest = {
+    apiVersion = "postgresql.cnpg.io/v1"
+    kind       = "Cluster"
+    metadata = {
+      name      = "honcho-postgres"
+      namespace = kubernetes_namespace.honcho.metadata[0].name
+    }
+    spec = {
+      instances = var.postgresql_replica_count
+      primaryUpdateStrategy = "unsupervised"
+      postgresql = {
+        parameters = {
+          shared_buffers        = "256MB"
+          effective_cache_size  = "1GB"
+          maintenance_work_mem  = "64MB"
+          checkpoint_completion_target = "0.9"
+          wal_buffers           = "16MB"
+        }
+      }
+      bootstrap = {
+        initdb = {
+          database = "honcho"
+          owner    = "honcho"
+          secret = {
+            name = kubernetes_secret.postgresql_credentials.metadata[0].name
+          }
+        }
+      }
+      storage = {
+        size             = var.postgresql_storage_size
+        storageClassName = kubernetes_storage_class.fast.metadata[0].name
+      }
+      monitoring = {
+        enabled = false
+      }
+    }
+  }
+
+  depends_on = [helm_release.cnpg_operator, kubernetes_secret.postgresql_credentials]
+}
+
+# Secret for PostgreSQL credentials
+resource "kubernetes_secret" "postgresql_credentials" {
+  metadata {
+    name      = "postgresql-credentials"
+    namespace = kubernetes_namespace.honcho.metadata[0].name
+  }
+
+  type = "kubernetes.io/basic-auth"
+
+  data = {
+    username = base64encode("honcho")
+    password = base64encode(var.postgresql_password)
+  }
+
+  depends_on = [kubernetes_namespace.honcho]
+}
+
+# Add Valkey Helm repository
+resource "helm_repository" "valkey" {
+  name             = "valkey"
+  repository_url   = "https://valkey-io.github.io/valkey-helm-charts"
+  namespace        = kubernetes_namespace.honcho.metadata[0].name
+  create_namespace = false
+}
+
+# Deploy Valkey (Redis-compatible)
+resource "helm_release" "valkey" {
+  name             = "honcho-valkey"
+  repository       = helm_repository.valkey.name
+  chart            = "valkey"
+  version          = "0.3.0"
+  namespace        = kubernetes_namespace.honcho.metadata[0].name
+  create_namespace = false
+
+  values = [yamlencode({
+    replicas = var.redis_replica_count
+    persistence = {
+      enabled      = true
+      storageClass = kubernetes_storage_class.fast.metadata[0].name
+      size         = var.redis_storage_size
+    }
+    resources = {
+      requests = {
+        memory = "256Mi"
+        cpu    = "100m"
+      }
+      limits = {
+        memory = "512Mi"
+        cpu    = "500m"
+      }
+    }
+  })]
+
+  depends_on = [kubernetes_namespace.honcho]
+}
+
 # Output kubeconfig for manual kubectl access
 resource "local_file" "kubeconfig" {
   content = templatefile("${path.module}/kubeconfig.tpl", {
