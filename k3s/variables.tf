@@ -22,12 +22,6 @@ variable "insecure_skip_tls_verify" {
   default     = true # TODO: Set to false and provide CA cert
 }
 
-variable "skip_credentials_validation" {
-  description = "Skip credentials validation"
-  type        = bool
-  default     = true
-}
-
 variable "cluster_name" {
   description = "K3s cluster name"
   type        = string
