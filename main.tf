@@ -198,7 +198,7 @@ resource "azurerm_linux_virtual_machine" "veverka" {
     vm_name                    = each.value
     tailscale_auth_key         = var.tailscale_auth_key
     cloudflare_tunnel_token    = var.cloudflare_tunnel_token
-    k3s_url                    = each.value == var.k3s_server_name ? "" : "https://${var.k3s_server_name}:6443"
+    k3s_url                    = each.value == var.k3s_server_name ? "" : "https://${azurerm_network_interface.veverka[var.k3s_server_name].private_ip_address}:6443"
     k3s_token                  = var.k3s_token
   }))
 
