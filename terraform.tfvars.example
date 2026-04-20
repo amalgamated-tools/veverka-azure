@@ -12,9 +12,18 @@
 # Cloudflare Tunnel token:
 #   https://dash.cloudflare.com/ → Zero Trust → Networks → Tunnels
 #
+# K3s setup:
+#   1. terraform apply (creates VMs with K3s installed)
+#   2. ssh veverkap@vazure1 "sudo /usr/local/bin/k3s server --token my-secret-token"
+#   3. Get token: ssh veverkap@vazure1 "sudo cat /var/lib/rancher/k3s/server/node-token"
+#   4. Use token below
+#
 # Example:
 # ssh_public_key            = "ssh-rsa AAAAB3NzaC1yc2EA..."
 # tailscale_auth_key        = "tskey-xxxxxxxxxxxxxxxxxxxxxxxx"
 # cloudflare_tunnel_token   = "xxxxxxxx-xxxxx-xxxxx"
 # location                  = "East US"
+# k3s_token                 = "K1234567890abcdefg::server:xxx"
+# postgresql_password       = "your-secure-password-here"
+# honcho_enable             = true  # Set to true to deploy Honcho to K3s
 

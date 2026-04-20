@@ -40,3 +40,28 @@ variable "cloudflare_tunnel_token" {
   sensitive   = true
   default     = ""
 }
+
+variable "k3s_server_name" {
+  description = "K3s server (control plane) VM name (typically VAZURE1)"
+  type        = string
+  default     = "VAZURE1"
+}
+
+variable "k3s_token" {
+  description = "K3s cluster token (generated after first server starts)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "postgresql_password" {
+  description = "PostgreSQL password for Honcho database"
+  type        = string
+  sensitive   = true
+}
+
+variable "honcho_enable" {
+  description = "Enable Honcho deployment to K3s"
+  type        = bool
+  default     = false
+}

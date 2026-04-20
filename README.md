@@ -81,11 +81,71 @@ sudo journalctl -u cloudflared -n 50
 - **Storage**: Premium SSD managed disks
 - **Free tier**: 750 hours/month per VM (12 months)
 
-## VM Names
+## VM Names & K3s Cluster
 
+**K3s Kubernetes Cluster:**
+- **VAZURE1** — K3s control plane (server)
+- **VAZURE2** — K3s worker node
+- **VAZURE3** — K3s worker node
+
+**Workloads:**
 - **VAZURE1** — nanobot gateway + copilot-api
-- **VAZURE2** — Honcho + PostgreSQL + Redis
-- **VAZURE3** — Secondary services (n8n, Qdrant, etc.)
+- **VAZURE2** — Honcho API + PostgreSQL + Redis (via K3s)
+- **VAZURE3** — n8n + Qdrant (via K3s)
+
+## K3s Setup
+
+### Step 1: Deploy VMs
+
+```bash
+terraform apply
+```
+
+### Step 2: Get K3s Token
+
+After VMs are running (5-10 mins):
+
+```bash
+# SSH into VAZURE1
+ssh veverkap@vazure1
+
+# Get the node token
+sudo cat /var/lib/rancher/k3s/server/node-token
+# Output: K1234567890abcdefg::server:xxx
+```
+
+### Step 3: Add Token to terraform.tfvars
+
+```hcl
+k3s_token          = "K1234567890abcdefg::server:xxx"
+postgresql_password = "your-secure-postgres-password"
+honcho_enable      = true
+```
+
+### Step 4: Deploy K3s Cluster
+
+```bash
+terraform apply
+```
+
+This will:
+- ✅ Join VAZURE2 & VAZURE3 to the K3s cluster
+- ✅ Create namespaces (`honcho`, `workflows`)
+- ✅ Set up persistent volumes for PostgreSQL & Redis
+- ✅ Generate kubeconfig
+
+### Verify Cluster
+
+```bash
+# Get kubeconfig
+kubectl config view --raw > ~/.kube/config-azure
+
+# Check nodes
+KUBECONFIG=~/.kube/config-azure kubectl get nodes
+
+# Check namespaces
+KUBECONFIG=~/.kube/config-azure kubectl get ns
+```
 
 ## Estimated Costs
 

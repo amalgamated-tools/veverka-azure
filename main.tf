@@ -170,11 +170,13 @@ resource "azurerm_linux_virtual_machine" "veverka" {
     azurerm_network_interface.veverka[each.value].id,
   ]
 
-  # User data script to install Tailscale and Cloudflare Tunnel
+  # User data script to install Tailscale, Cloudflare Tunnel, Docker, and K3s
   user_data = base64encode(templatefile("${path.module}/user_data.sh", {
     vm_name                    = each.value
     tailscale_auth_key         = var.tailscale_auth_key
     cloudflare_tunnel_token    = var.cloudflare_tunnel_token
+    k3s_url                    = each.value == var.k3s_server_name ? "" : "https://${var.k3s_server_name}:6443"
+    k3s_token                  = var.k3s_token
   }))
 
   # Tags for organization
@@ -208,4 +210,17 @@ output "resource_group" {
     name     = azurerm_resource_group.veverka.name
     location = azurerm_resource_group.veverka.location
   }
+}
+
+# K3s Kubernetes Cluster Module (optional)
+module "k3s" {
+  count = var.honcho_enable ? 1 : 0
+
+  source = "./k3s"
+
+  k3s_server_ip           = azurerm_network_interface.veverka[var.k3s_server_name].private_ip_address
+  k3s_token               = var.k3s_token
+  postgresql_password     = var.postgresql_password
+  
+  depends_on = [azurerm_linux_virtual_machine.veverka]
 }
