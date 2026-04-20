@@ -14,6 +14,10 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 2.0"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
 }
 
@@ -126,6 +130,12 @@ resource "helm_release" "cnpg_operator" {
   depends_on = [kubernetes_namespace.honcho]
 }
 
+# Wait for CloudNativePG CRD to be ready before creating the cluster
+resource "time_sleep" "cnpg_crd_ready" {
+  create_duration = "30s"
+  depends_on      = [helm_release.cnpg_operator]
+}
+
 # Create PostgreSQL Cluster using CloudNativePG
 resource "kubernetes_manifest" "postgresql_cluster" {
   manifest = {
@@ -166,7 +176,7 @@ resource "kubernetes_manifest" "postgresql_cluster" {
     }
   }
 
-  depends_on = [helm_release.cnpg_operator, kubernetes_secret.postgresql_credentials]
+  depends_on = [time_sleep.cnpg_crd_ready, kubernetes_secret.postgresql_credentials]
 }
 
 # Secret for PostgreSQL credentials
