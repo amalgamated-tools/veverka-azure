@@ -4,12 +4,37 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.0"
+    }
   }
   required_version = ">= 1.0"
 }
 
 provider "azurerm" {
   features {}
+}
+
+# Kubernetes provider (only configured if honcho_enable = true)
+provider "kubernetes" {
+  host                   = var.honcho_enable ? "https://${azurerm_network_interface.veverka[var.k3s_server_name].private_ip_address}:6443" : "https://localhost:6443"
+  token                  = var.honcho_enable ? var.k3s_token : ""
+  insecure               = true
+  skip_credentials_validation = true
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = var.honcho_enable ? "https://${azurerm_network_interface.veverka[var.k3s_server_name].private_ip_address}:6443" : "https://localhost:6443"
+    token                  = var.honcho_enable ? var.k3s_token : ""
+    insecure               = true
+    skip_credentials_validation = true
+  }
 }
 
 # Resource group
@@ -222,5 +247,9 @@ module "k3s" {
   k3s_token               = var.k3s_token
   postgresql_password     = var.postgresql_password
   
-  depends_on = [azurerm_linux_virtual_machine.veverka]
+  # Pass providers to module (required when using count)
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
 }

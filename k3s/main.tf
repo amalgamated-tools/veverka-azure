@@ -17,22 +17,7 @@ terraform {
   }
 }
 
-# Configure Kubernetes provider to connect to K3s cluster
-provider "kubernetes" {
-  host                   = "https://${var.k3s_server_ip}:6443"
-  token                  = var.k3s_token
-  insecure               = var.insecure_skip_tls_verify
-  skip_credentials_validation = var.skip_credentials_validation
-}
-
-provider "helm" {
-  kubernetes {
-    host                   = "https://${var.k3s_server_ip}:6443"
-    token                  = var.k3s_token
-    insecure               = var.insecure_skip_tls_verify
-    skip_credentials_validation = var.skip_credentials_validation
-  }
-}
+# Providers are passed from root module, no local configuration
 
 # Create namespace for Honcho stack
 resource "kubernetes_namespace" "honcho" {
