@@ -132,7 +132,7 @@ resource "helm_release" "cnpg_operator" {
 
 # Wait for CloudNativePG CRD to be ready before creating the cluster
 resource "time_sleep" "cnpg_crd_ready" {
-  create_duration = "30s"
+  create_duration = "60s"
   depends_on      = [helm_release.cnpg_operator]
 }
 
