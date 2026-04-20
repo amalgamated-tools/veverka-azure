@@ -22,16 +22,14 @@ provider "azurerm" {
 
 # Kubernetes provider (only configured if honcho_enable = true)
 provider "kubernetes" {
-  host  = var.honcho_enable ? "https://${azurerm_network_interface.veverka[var.k3s_server_name].private_ip_address}:6443" : "https://localhost:6443"
-  token = var.honcho_enable ? var.k3s_token : ""
-  insecure = true
+  config_path = "~/.kube/config"
+  insecure    = true
 }
 
 provider "helm" {
   kubernetes {
-    host  = var.honcho_enable ? "https://${azurerm_network_interface.veverka[var.k3s_server_name].private_ip_address}:6443" : "https://localhost:6443"
-    token = var.honcho_enable ? var.k3s_token : ""
-    insecure = true
+    config_path = "~/.kube/config"
+    insecure    = true
   }
 }
 
