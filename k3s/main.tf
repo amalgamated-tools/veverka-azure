@@ -61,41 +61,8 @@ resource "kubernetes_storage_class" "fast" {
   allow_volume_expansion = true
 }
 
-# PersistentVolumeClaim for PostgreSQL
-resource "kubernetes_persistent_volume_claim" "postgresql" {
-  metadata {
-    name      = "postgresql-pvc"
-    namespace = kubernetes_namespace.honcho.metadata[0].name
-  }
-
-  spec {
-    access_modes       = ["ReadWriteOnce"]
-    storage_class_name = kubernetes_storage_class.fast.metadata[0].name
-    resources {
-      requests = {
-        storage = var.postgresql_storage_size
-      }
-    }
-  }
-}
-
-# PersistentVolumeClaim for Redis
-resource "kubernetes_persistent_volume_claim" "redis" {
-  metadata {
-    name      = "redis-pvc"
-    namespace = kubernetes_namespace.honcho.metadata[0].name
-  }
-
-  spec {
-    access_modes       = ["ReadWriteOnce"]
-    storage_class_name = kubernetes_storage_class.fast.metadata[0].name
-    resources {
-      requests = {
-        storage = var.redis_storage_size
-      }
-    }
-  }
-}
+# Note: PVCs will be created automatically by Helm charts
+# No need to pre-create them
 
 # ConfigMap for PostgreSQL initialization
 resource "kubernetes_config_map" "postgresql_init" {
@@ -156,21 +123,26 @@ resource "kubernetes_secret" "postgresql_credentials" {
   depends_on = [kubernetes_namespace.honcho]
 }
 
-# Deploy Valkey (Redis-compatible)
+# Deploy Valkey (Redis-compatible) via Bitnami Helm chart
 resource "helm_release" "valkey" {
-  name             = "honcho-valkey"
-  repository       = "https://valkey-io.github.io/valkey-helm-charts"
-  chart            = "valkey"
-  version          = "0.3.0"
+  name             = "honcho-redis"
+  repository       = "https://charts.bitnami.com/bitnami"
+  chart            = "redis"
+  version          = "18.0.0"
   namespace        = kubernetes_namespace.honcho.metadata[0].name
   create_namespace = false
 
   values = [yamlencode({
-    replicas = var.redis_replica_count
-    persistence = {
-      enabled      = true
-      storageClass = kubernetes_storage_class.fast.metadata[0].name
-      size         = var.redis_storage_size
+    architecture = "standalone"
+    auth = {
+      enabled = false
+    }
+    master = {
+      persistence = {
+        enabled      = true
+        storageClass = kubernetes_storage_class.fast.metadata[0].name
+        size         = var.redis_storage_size
+      }
     }
     resources = {
       requests = {
