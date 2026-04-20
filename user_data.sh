@@ -127,6 +127,28 @@ if ! command -v k3s &> /dev/null; then
     echo "Waiting... ($i/30)"
     sleep 5
   done
+elif [ -n "${k3s_url}" ] && [ -n "${k3s_token}" ]; then
+  # K3s is already installed but this is an agent node - reconfigure it
+  echo "K3s already installed. Reconfiguring as AGENT to join ${k3s_url}..."
+  sudo systemctl stop k3s
+  sudo rm -f /etc/rancher/k3s/k3s.yaml /etc/rancher/k3s/k3s.env
+  
+  # Set environment variables for agent mode
+  K3S_NODE_NAME="$VM_NAME" \
+  K3S_URL="${k3s_url}" \
+  K3S_TOKEN="${k3s_token}" \
+  curl -sfL https://get.k3s.io | sh -
+  
+  # Wait for K3s to be ready
+  echo "Waiting for K3s agent to be ready..."
+  for i in {1..30}; do
+    if sudo systemctl is-active --quiet k3s; then
+      echo "K3s agent is ready"
+      break
+    fi
+    echo "Waiting... ($i/30)"
+    sleep 5
+  done
 else
   echo "K3s already installed, skipping installation"
 fi
