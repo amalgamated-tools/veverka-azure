@@ -96,7 +96,21 @@ fi
 # Install K3s (idempotent)
 if ! command -v k3s &> /dev/null; then
   echo "Installing K3s..."
-  K3S_NODE_NAME="$VM_NAME" K3S_URL="${k3s_url}" K3S_TOKEN="${k3s_token}" curl -sfL https://get.k3s.io | sh -
+  
+  if [ -z "${k3s_url}" ]; then
+    # This is the K3s server node
+    echo "Installing K3s as SERVER (no k3s_url provided)..."
+    K3S_NODE_NAME="$VM_NAME" \
+    K3S_TOKEN="${k3s_token}" \
+    curl -sfL https://get.k3s.io | sh -
+  else
+    # This is a K3s agent node joining a cluster
+    echo "Installing K3s as AGENT (joining $k3s_url)..."
+    K3S_NODE_NAME="$VM_NAME" \
+    K3S_URL="${k3s_url}" \
+    K3S_TOKEN="${k3s_token}" \
+    curl -sfL https://get.k3s.io | sh -
+  fi
   
   # Wait for K3s to be ready
   echo "Waiting for K3s to be ready..."
