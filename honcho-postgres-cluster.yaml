@@ -21,6 +21,5 @@ spec:
         name: postgresql-credentials
   storage:
     size: 10Gi
-    storageClassName: fast
-  monitoring:
-    enabled: false
+    storageClass: fast
+
